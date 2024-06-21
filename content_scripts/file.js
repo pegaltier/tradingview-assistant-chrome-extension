@@ -67,6 +67,8 @@ file.uploadHandler = async (fileData) => {
   })
   if(!strategyName)
     return 'The name for indicator in row with name ""__indicatorName"" is missed in CSV file'
+  
+  console.log('🚀 ~ file.uploadHandler ~ ', {csvData, fileData, propVal});
   const res = await tv.setStrategyParams(strategyName, propVal, true)
   if(res) {
     return `Parameters are set`

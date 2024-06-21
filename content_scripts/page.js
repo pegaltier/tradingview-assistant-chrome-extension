@@ -44,7 +44,7 @@ page._mouseEvents ={};
 ["mouseover", "mousedown", "mouseup", "click",
   "dblclick", "contextmenu"].forEach(eventType => {
   page._mouseEvents[eventType] = document.createEvent('MouseEvents')
-  page._mouseEvents[eventType].initEvent (eventType, true, true)
+  page._mouseEvents[eventType].initEvent(eventType, true, true)
 })
 
 page.getTextForSel = function (selector, elParent) {
@@ -106,9 +106,10 @@ page.setSelByText = (selector, textValue) => {
   if (!selectorAllVal || !selectorAllVal.length)
     return isSet
   for (let optionsEl of selectorAllVal) {
-    if(optionsEl) {//&& options.innerText.startsWith(textValue)) {
-      const itemValue = page.getElText(optionsEl).toLowerCase()
-      if(itemValue && textValue && itemValue.startsWith(textValue.toLowerCase())) {
+    if (optionsEl) {//&& options.innerText.startsWith(textValue)) {
+      const itemValue = page.getElText(optionsEl).toLowerCase();
+      const textValueFixed = typeof textValue === 'number' ? textValue : textValue.toLowerCase();
+      if (itemValue && textValue && itemValue.startsWith(textValueFixed)) {
         page.mouseClick(optionsEl)
         isSet = true
         break
