@@ -23,7 +23,7 @@
             "run_at": "document_end"
         }
     ],
-    "permissions": ["storage", "unlimitedStorage", "activeTab"],
+    "permissions": ["storage", "unlimitedStorage", "activeTab", "clipboardRead", "clipboardWrite"],
     "action": {
           "default_icon": {
             "16": "images/tv_assist_16.png",
