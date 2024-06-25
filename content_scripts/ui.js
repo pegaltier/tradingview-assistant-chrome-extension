@@ -43,7 +43,7 @@ ui.checkInjectedElements = () => {
       '<a id="iondvExport1" style="cursor: pointer;padding: 5px" title="Export preset into file"><i class="iondv_icon iondv_download"></i></a>' +
 
       '<a id="iondvImport2" style="cursor: pointer;padding: 5px; color: blue" title="Import values from clipboard"><i class="iondv_icon iondv_upload"></i></a>' +
-      '<a id="iondvExport2" style="cursor: pointer;padding: 5px; color: blue" title="Export values into clipboard"><i class="iondv_icon iondv_download"></i></a>' +
+      '<a id="iondvExport2" style="cursor: pointer;padding: 5px; color: blue" title="Export values into clipboard"><i class="iondv_icon iondv_download"></i></a>' 
       // '<select id="iondvImport3" style="cursor: pointer;padding: 5px"><option value="a">A</option><option value="b">B</option></select>'
 
     strategyDefaultEl.before(importExportEl)
