@@ -6,6 +6,45 @@ const message = {
   errorsNoBacktest: 'There is no backtest data. Try to do a new backtest'
 }
 
+// https://github.com/extend-chrome/clipboard
+const clipboardReadText = () =>
+  new Promise((resolve, reject) => {
+    // Create hidden input to receive text
+    const el = document.createElement('textarea')
+    el.value = 'before paste'
+    document.body.append(el)
+
+    // Paste from clipboard into input
+    el.select()
+    const success = document.execCommand('paste')
+
+    // The contents of the clipboard
+    const text = el.value
+    el.remove()
+
+    if (!success) reject(new Error('Unable to read from clipboard'))
+
+    // Resolve with the contents of the clipboard
+    resolve(text)
+  })
+
+const clipboardWriteText = (text) =>
+  new Promise((resolve, reject) => {
+    // Create hidden input with text
+    const el = document.createElement('textarea')
+    el.value = text
+    document.body.append(el)
+
+    // Select the text and copy to clipboard
+    el.select()
+    const success = document.execCommand('copy')
+    el.remove()
+
+    if (!success) reject(new Error('Unable to write to clipboard'))
+
+    resolve(text)
+  })
+
 action.saveParameters = async () => {
   const strategyData = await tv.getStrategy(null, true)
   if(!strategyData || !strategyData.hasOwnProperty('name') || !strategyData.hasOwnProperty('properties') || !strategyData.properties) {
@@ -17,11 +56,63 @@ action.saveParameters = async () => {
   Object.keys(strategyData.properties).forEach(key => {
     strategyParamsCSV += `${JSON.stringify(key)},${typeof strategyData.properties[key][0] === 'string' ? JSON.stringify(strategyData.properties[key]) : strategyData.properties[key]}\n`
   })
-  file.saveAs(strategyParamsCSV, `${strategyData.name}.csv`)
+  file.saveAs(strategyParamsCSV, `${strategyData.name}_params.csv`)
+}
+
+action.saveClipboard = async () => {
+  const strategyData = await tv.getStrategy(null, true)
+  const ignoredBuilderKeys = ['P', 'X', '1', '2', '3', '4']
+  if(!strategyData || !strategyData.hasOwnProperty('name') || !strategyData.hasOwnProperty('properties') || !strategyData.properties) {
+    await ui.showErrorPopup('The current indicator/strategy do not contain inputs that can be saved.')
+    // await ui.showWarningPopup('Please open the indicator (strategy) parameters window before saving them to a file.')
+    return
+  }
+
+  let strategyParamskeys = '' 
+  let strategyParamsValues = ''
+  Object.keys(strategyData.properties).forEach(key => {
+    if (strategyData.name === 'S_NCBLD') {
+      if (!ignoredBuilderKeys.includes(key)) {
+        strategyParamskeys += `${JSON.stringify(key)}`
+        strategyParamsValues += `${typeof strategyData.properties[key][0] === 'string' ? JSON.stringify(strategyData.properties[key]) : strategyData.properties[key]}, `
+      }
+    } else {
+      strategyParamskeys += `${JSON.stringify(key)}`
+      strategyParamsValues += `${typeof strategyData.properties[key][0] === 'string' ? JSON.stringify(strategyData.properties[key]) : strategyData.properties[key]}, `
+    }
+  })
+  console.log('🚀 ~ DEBUG ~ saveClipboard:', {strategyData, strategyParamskeys, strategyParamsValues});
+
+  clipboardWriteText(strategyParamsValues)
+  // file.saveAs(strategyParamsCSV.replaceAll('"', "'"), `${strategyData.name}_values.csv`)
 }
 
 action.loadParameters = async () => {
   await file.upload(file.uploadHandler, '', false)
+}
+
+action.loadClipboard = async () => {
+  const strategyData = await tv.getStrategy(null, true)
+  if (strategyData.name === 'S_NCBLD') {
+    const valuesClipboard = await clipboardReadText();
+    const valuesClipboardFormat = valuesClipboard.replaceAll(' ','').replaceAll("'",'')
+    const keys = ['Y','Z','１','𝟏','➀','➊','２','𝟐','➁','➋','３','𝟑','➂','➌','４','𝟒','➃','➍','５','𝟓','➄','➎','６','𝟔','➅','➏','７','𝟕','➆','➐','８','𝟖','➇','➑','←','⚡︎','→','↕️','⚛','♾','L','R','A','B','C','D','E','F','G','H','I','J','K','O','M','N','T','S']
+    const values = valuesClipboardFormat.split('[')[1].split(']')[0].split(',').slice(2)
+    if (keys.length === values.length) {
+      const propVal = {'P': '0000'}
+      for (let i = 0; i < keys.length; i++) {
+        propVal[keys[i]] = values[i]
+      }
+      const res = await tv.setStrategyParams('S_NCBLD', propVal, true)
+      console.log('🚀 ~ DEBUG ~ loadClipboard OK:', {values, valuesClipboard, res});
+    } else {
+      console.log('🚀 ~ DEBUG ~ loadClipboard ERROR :', {keysLength: keys.length, valuesLength: values.length, keys, values});
+    }
+  } else {
+    console.log('🚀 ~ DEBUG ~ loadClipboard ERROR incorrect strategy', strategyData.name);
+  }
+
+
 }
 
 action.uploadSignals = async () => {
@@ -91,6 +182,7 @@ action.testStrategy = async (request, isDeepTest = false) => {
   try {
     const strategyData = await action._getStrategyData()
     const [allRangeParams, paramRange, cycles] = await action._getRangeParams(strategyData)
+    console.log('🚀 ~ DEBUG testStrategy:', {allRangeParams, paramRange, cycles});
     if(allRangeParams !== null) { // click cancel on parameters
       const testParams = await action._getTestParams(request, strategyData, allRangeParams, paramRange, cycles)
       console.log('Test parameters', testParams)
