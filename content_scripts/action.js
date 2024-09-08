@@ -61,7 +61,7 @@ action.saveParameters = async () => {
 
 action.saveClipboard = async () => {
   const strategyData = await tv.getStrategy(null, true)
-  const ignoredBuilderKeys = ['P', 'X', '1', '2', '3', '4']
+  const ignoredBuilderKeys = ['P', '1', '2', '3', '4']
   if(!strategyData || !strategyData.hasOwnProperty('name') || !strategyData.hasOwnProperty('properties') || !strategyData.properties) {
     await ui.showErrorPopup('The current indicator/strategy do not contain inputs that can be saved.')
     // await ui.showWarningPopup('Please open the indicator (strategy) parameters window before saving them to a file.')
@@ -82,8 +82,11 @@ action.saveClipboard = async () => {
     }
   })
   console.log('🚀 ~ DEBUG ~ saveClipboard:', {strategyData, strategyParamskeys, strategyParamsValues});
-
-  clipboardWriteText(strategyParamsValues)
+  const currentTF = await tvChart.getCurrentTimeFrame()
+  const currentTicker = await tvChart.getTicker()
+  const presetText = strategyParamsValues.replaceAll('"', "'").slice(0, -2)
+  const finalText = `'${currentTicker-currentTF-9}' => [false, 'NAME1_XO', ${presetText}]`
+  clipboardWriteText(finalText)
   // file.saveAs(strategyParamsCSV.replaceAll('"', "'"), `${strategyData.name}_values.csv`)
 }
 
@@ -92,27 +95,48 @@ action.loadParameters = async () => {
 }
 
 action.loadClipboard = async () => {
+  // to use this feature just copy the full line from the source and the script below will extract the desired variables from the full line
   const strategyData = await tv.getStrategy(null, true)
   if (strategyData.name === 'S_NCBLD') {
-    const valuesClipboard = await clipboardReadText();
+    const valuesClipboard = await clipboardReadText(); 
     const valuesClipboardFormat = valuesClipboard.replaceAll(' ','').replaceAll("'",'')
-    const keys = ['Y','Z','１','𝟏','➀','➊','２','𝟐','➁','➋','３','𝟑','➂','➌','４','𝟒','➃','➍','５','𝟓','➄','➎','６','𝟔','➅','➏','７','𝟕','➆','➐','８','𝟖','➇','➑','←','⚡︎','→','↕️','⚛','♾','L','R','A','B','C','D','E','F','G','H','I','J','K','O','M','N','T','S']
-    const values = valuesClipboardFormat.split('[')[1].split(']')[0].split(',').slice(2)
+    const keys = ['X','Y','Z','◼','♢','♦️','⬡','←','⚡︎','→','↕️','⚛','♾','L','R','A','B','C','D','E','F','G','H','I','J','K','O','★','∞','U','V','M','N','T','S','１','𝟏','➀','➊','２','𝟐','➁','➋','３','𝟑','➂','➌','４','𝟒','➃','➍','５','𝟓','➄','➎','６','𝟔','➅','➏','７','𝟕','➆','➐','８','𝟖','➇','➑']
+    const values = valuesClipboardFormat.split('[')[1].split(']')[0].split(',').slice(2) // this will extract from the full line only the necessary part
     if (keys.length === values.length) {
-      const propVal = {'P': '0000'}
+      const propVal = {'P': 0}
       for (let i = 0; i < keys.length; i++) {
         propVal[keys[i]] = values[i]
       }
       const res = await tv.setStrategyParams('S_NCBLD', propVal, true)
       console.log('🚀 ~ DEBUG ~ loadClipboard OK:', {values, valuesClipboard, res});
     } else {
-      console.log('🚀 ~ DEBUG ~ loadClipboard ERROR :', {keysLength: keys.length, valuesLength: values.length, keys, values});
+      console.log('🚀 ~ DEBUG ~ loadClipboard ERROR keys mismatch:', {keysLength: keys.length, valuesLength: values.length, keys, values});
     }
   } else {
-    console.log('🚀 ~ DEBUG ~ loadClipboard ERROR incorrect strategy', strategyData.name);
+    console.log('🚀 ~ DEBUG ~ loadClipboard incorrect strategy', strategyData.name);
   }
+}
 
+action.loadPreset = async (preset) => {
+  const strategyData = await tv.getStrategy(null, true)
+  if (strategyData.name === 'S_NCBLD') {
+    const ticker = preset.split('-')[0];
+    const timeframe = preset.split('-')[1];
+    const presetNumber = preset.split('-')[2];
 
+    // const timeframeOK = /^-?\d+$/.test(timeframe) ? (parseInt(timeframe, 10) / 60) + 'H' : timeframe
+    const isMinutes = tvChart.isTFDataMinutes(timeframe)
+    const tfNormValue = isMinutes ? tvChart.minutesToTF(timeframe, isMinutes, 0) : timeframe
+    console.log('🚀 ~ DEBUG ~ loadPreset OK:', {ticker, timeframe, tfNormValue, preset});
+    await tvChart.changeTicker(ticker)
+    await tvChart.changeTimeFrame(tfNormValue)
+
+    const propVal = {'P': presetNumber}
+    const res = await tv.setStrategyParams('S_NCBLD', propVal, true)
+  } else {
+    console.log('🚀 ~ DEBUG ~ loadClipboard incorrect strategy', strategyData.name);
+  }
+  
 }
 
 action.uploadSignals = async () => {

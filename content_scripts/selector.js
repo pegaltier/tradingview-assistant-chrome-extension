@@ -40,6 +40,7 @@ const SEL = {
     strategyImportExport: '#iondvImportExport',
 
     chartTicker: '#header-toolbar-symbol-search > div[class*="text-"]',
+    chartSetTicker: 'div[data-name="symbol-search-items-dialog"] > div > div > input[data-role="search"]',
     chartTimeframeFavorite: '#header-toolbar-intervals button[data-value]',
     chartTimeframeActive: '#header-toolbar-intervals button[data-value][aria-checked="true"]',
     chartTimeframeMenuOrSingle: '#header-toolbar-intervals button[class^="menu"]',
