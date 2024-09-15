@@ -74,18 +74,18 @@ action.saveClipboard = async () => {
     if (strategyData.name === 'S_NCBLD') {
       if (!ignoredBuilderKeys.includes(key)) {
         strategyParamskeys += `${JSON.stringify(key)}`
-        strategyParamsValues += `${typeof strategyData.properties[key][0] === 'string' ? JSON.stringify(strategyData.properties[key]) : strategyData.properties[key]}, `
+        strategyParamsValues += `${typeof strategyData.properties[key][0] === 'string' ? JSON.stringify(strategyData.properties[key]) : strategyData.properties[key]},`
       }
     } else {
       strategyParamskeys += `${JSON.stringify(key)}`
-      strategyParamsValues += `${typeof strategyData.properties[key][0] === 'string' ? JSON.stringify(strategyData.properties[key]) : strategyData.properties[key]}, `
+      strategyParamsValues += `${typeof strategyData.properties[key][0] === 'string' ? JSON.stringify(strategyData.properties[key]) : strategyData.properties[key]},`
     }
   })
   console.log('🚀 ~ DEBUG ~ saveClipboard:', {strategyData, strategyParamskeys, strategyParamsValues});
   const currentTF = await tvChart.getCurrentTimeFrame()
   const currentTicker = await tvChart.getTicker()
-  const presetText = strategyParamsValues.replaceAll('"', "'").slice(0, -2)
-  const finalText = `'${currentTicker-currentTF-9}' => [false, 'NAME1_XO', ${presetText}]`
+  const presetText = strategyParamsValues.replaceAll('"', "").slice(0, -1)
+  const finalText = `'${currentTicker}${currentTF}-9'=>',false,NAME1_XO,${presetText},EOL' // 09-2024(xtrades,x%)`
   clipboardWriteText(finalText)
   // file.saveAs(strategyParamsCSV.replaceAll('"', "'"), `${strategyData.name}_values.csv`)
 }
