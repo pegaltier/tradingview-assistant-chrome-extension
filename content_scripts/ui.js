@@ -2,6 +2,12 @@ const ui = {
   isMsgShown: false
 }
 
+const PRESETS_NCBLD = {
+
+};
+
+const PRESETS_NCBLD_OPTIONS = Object.keys(PRESETS_NCBLD).map(key => `<option value="${key}">${key}</option>`)
+
 const scriptFonts = document.createElement('style')
 scriptFonts.innerHTML = '@font-face {' +
   '    font-family: "Font Awesome 5 Free";' +
@@ -37,20 +43,47 @@ ui.checkInjectedElements = () => {
       return
     const importExportEl = document.createElement('div')
     importExportEl.id = 'iondvImportExport'
-    importExportEl.setAttribute('style', 'padding-left: 10px;padding-right: 10px; padding-top: 8px;')
-    importExportEl.innerHTML = '<a id="iondvImport" style="cursor: pointer;padding-right: 5px"><i class="iondv_icon iondv_upload"></i></a>' +
-      '<a id="iondvExport" style="cursor: pointer;padding-left: 5px;"><i class="iondv_icon iondv_download"></i></a>'
-    strategyDefaultEl.after(importExportEl)
-    const exportBtn = document.getElementById('iondvExport')
-    const importBtn = document.getElementById('iondvImport')
-    if (exportBtn) {
-      exportBtn.onclick = async () => {
+    importExportEl.setAttribute('style', 'padding-left: 10px;padding-right: 10px; padding-top: 2px;')
+    importExportEl.innerHTML = 
+      '<a id="iondvImport1" style="cursor: pointer;padding: 5px" title="Import preset from file"><i class="iondv_icon iondv_upload"></i></a>' +
+      '<a id="iondvExport1" style="cursor: pointer;padding: 5px" title="Export preset into file"><i class="iondv_icon iondv_download"></i></a>' +
+
+      '<a id="iondvImport2" style="cursor: pointer;padding: 5px; color: blue" title="Import values from clipboard"><i class="iondv_icon iondv_upload"></i></a>' +
+      '<a id="iondvExport2" style="cursor: pointer;padding: 5px; color: blue" title="Export values into clipboard"><i class="iondv_icon iondv_download"></i></a>' +
+      '<select id="iondvImport3" style="cursor: pointer;padding: 5px;max-width: 150px;">' + PRESETS_NCBLD_OPTIONS + '</select>'
+
+    strategyDefaultEl.before(importExportEl)
+    const importBtn1 = document.getElementById('iondvImport1')
+    const importBtn2 = document.getElementById('iondvImport2')
+    const importBtn3 = document.getElementById('iondvImport3')
+
+    const exportBtn1 = document.getElementById('iondvExport1')
+    const exportBtn2 = document.getElementById('iondvExport2')
+
+    if (importBtn1) {
+      importBtn1.onclick = async () => {
+        await action.loadParameters()
+      }
+    }
+    if (importBtn2) {
+      importBtn2.onclick = async () => {
+        await action.loadClipboard()
+      }
+    }
+    if (importBtn3) {
+      iondvImport3.addEventListener('change', async () => {
+        await action.loadPreset(document.getElementById('iondvImport3').value)
+      });
+    }
+    
+    if (exportBtn1) {
+      exportBtn1.onclick = async () => {
         await action.saveParameters()
       }
     }
-    if (importBtn) {
-      importBtn.onclick = async () => {
-        await action.loadParameters()
+    if (exportBtn2) {
+      exportBtn2.onclick = async () => {
+        await action.saveClipboard()
       }
     }
 

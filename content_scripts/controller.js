@@ -30,6 +30,10 @@
             await action.saveParameters()
             break;
           }
+          case 'saveClipboard': {
+            await action.saveClipboard()
+            break;
+          }
           case 'loadParameters': {
             await action.loadParameters()
             break;

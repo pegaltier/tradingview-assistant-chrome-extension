@@ -25,6 +25,43 @@ tvChart.getCurrentTimeFrame = async () => {
   return curTimeFrameText
 }
 
+tvChart.changeTicker = async (setTicker) => {
+  const currentTicker = tvChart.getTicker()
+
+  if(setTicker === currentTicker) // Ticker already set
+    return
+
+  document.querySelector(SEL.chartTicker).click();
+  
+  const searchTickerInputEl = await page.waitForSelector(SEL.chartSetTicker, 1000)
+  searchTickerInputEl.focus()
+  searchTickerInputEl.value = setTicker;
+  searchTickerInputEl.dispatchEvent(new KeyboardEvent('keydown', {altKey:false,
+    bubbles: true,
+    cancelBubble: false, 
+    cancelable: true,
+    charCode: 0,
+    code: "Enter",
+    composed: true,
+    ctrlKey: false,
+    currentTarget: null,
+    defaultPrevented: true,
+    detail: 0,
+    eventPhase: 0,
+    isComposing: false,
+    isTrusted: true,
+    key: "Enter",
+    keyCode: 13,
+    location: 0,
+    metaKey: false,
+    repeat: false,
+    returnValue: false,
+    shiftKey: false,
+    type: "keydown",
+    which: 13}));
+  await page.waitForTimeout(3000)
+}
+
 tvChart.changeTimeFrame = async (setTF) => {
   const strategyTF = tvChart.correctTF(setTF)
 
@@ -113,7 +150,7 @@ tvChart.selectTimeFrameMenuItem = async(alertTF) => {
     const tfVal = item.getAttribute('data-value')
     let tfNormValue = tfVal
     const isMinutes = tvChart.isTFDataMinutes(tfVal)
-    tfNormValue = isMinutes && parseInt(tfVal) % 60 === 0 ? `${parseInt(tfVal) / 60}h` : isMinutes ? `${tfVal}m` : tfNormValue // If hours
+    tfNormValue = isMinutes && tvChart.minutesToTF(tfVal, isMinutes, tfNormValue)
     if (tfVal[tfVal.length-1] === 'S')
       tfNormValue = `${tfVal.substr(0,tfVal.length - 1)}s`
     if(tfNormValue === alertTF) {
@@ -127,4 +164,5 @@ tvChart.selectTimeFrameMenuItem = async(alertTF) => {
 
 
 tvChart.isTFDataMinutes = (tf) => !['S', 'D', 'M', 'W', 'R'].includes(tf[tf.length - 1])
+tvChart.minutesToTF = (tfVal, isMinutes, tfNormValue) => parseInt(tfVal) % 60 === 0 ? `${parseInt(tfVal) / 60}h` : isMinutes ? `${tfVal}m` : tfNormValue // If hours
 tvChart.correctTF = (tf) => ['D', 'M', 'W'].includes(tf) ? `1${tf}` : tf
